@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { tryCatch } from '../middlewares/trycatch'
+import { ErrorHandler, NotFoundError } from '../utils/utility-class'
 import Location from '../models/location.model'
-import { NotFoundError } from '../utils/utility-class'
 
 export const getLocations = tryCatch(async (req: Request, res: Response) => {
   const { page, limit } = req.query
@@ -72,12 +72,27 @@ export const updateLocation = tryCatch(async (req: Request, res: Response) => {
 export const deleteLocation = tryCatch(async (req: Request, res: Response) => {
   const { id } = req.params
 
-  const location = await Location.findByIdAndDelete(id)
+  const session = await Location.startSession()
+  session.startTransaction()
 
-  if (!location) throw new NotFoundError('Location not found')
+  try {
+    // Kiểm tra xem location có tồn tại không
+    const location = await Location.findById(id)
+    if (!location) throw new NotFoundError('Location not found')
 
-  res.json({
-    success: true,
-    message: 'Delete success',
-  })
+    // Kiểm tra xem có stock nào đang sử dụng location không
+    const isUsed = await Location.findOne({ _id: id })
+
+    if (isUsed) throw new ErrorHandler('Location is being used', 400)
+
+    // Xóa location
+    await Location.findByIdAndDelete(id)
+
+    await session.commitTransaction()
+  } catch (error) {
+    await session.abortTransaction()
+    throw new ErrorHandler('Delete location failed', 400)
+  } finally {
+    session.endSession()
+  }
 })

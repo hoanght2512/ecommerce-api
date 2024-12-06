@@ -1,4 +1,5 @@
-import { Schema, Document, model, Types } from 'mongoose'
+import { Schema, Document, model, Types, PaginateModel } from 'mongoose'
+import paginate from 'mongoose-paginate-v2'
 import { IVariant } from './variant.model'
 import { ICategory } from './category.model'
 
@@ -26,6 +27,17 @@ const productSchema = new Schema<IProduct>(
   { timestamps: true }
 )
 
-const Product = model<IProduct>('Product', productSchema)
+productSchema.plugin(paginate)
+
+productSchema.methods.toJSON = function () {
+  const product = this.toObject()
+  delete product.__v
+  return product
+}
+
+const Product = model<IProduct, PaginateModel<IProduct>>(
+  'Product',
+  productSchema
+)
 
 export default Product

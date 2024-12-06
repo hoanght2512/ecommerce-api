@@ -1,10 +1,20 @@
 import { Router } from 'express'
 import { validate } from '../middlewares/validator'
 import { authAdminMiddleware } from '../middlewares/auth'
-import { body } from 'express-validator'
-import { createProduct } from '../controllers/product.controller'
+import { body, query } from 'express-validator'
+import { createProduct, getProducts } from '../controllers/product.controller'
 
 const productRouter = Router()
+
+productRouter.get(
+  '/',
+  validate([
+    query('page').optional().isNumeric().withMessage('Page must be a number'),
+    query('limit').optional().isNumeric().withMessage('Limit must be a number'),
+    query('category').optional().isMongoId().withMessage('Category not found'),
+  ]),
+  getProducts
+)
 
 productRouter.post(
   '/',
@@ -14,7 +24,11 @@ productRouter.post(
     body('price').isNumeric().withMessage('Price is required'),
     body('category').isMongoId().withMessage('Category is required'),
     body('description').isString().withMessage('Description is required'),
-    body('image').isString().withMessage('Image is required'),
+    body('image')
+      .isString()
+      .withMessage('Image is required')
+      .isURL()
+      .withMessage('Image must be a URL'),
     body('variants').isArray().withMessage('Variants must be an array'),
     body('variants.*.name').isString().withMessage('Name is required'),
     body('variants.*.price')

@@ -27,6 +27,7 @@ const stockSchema = new Schema<IStock>(
     },
     location: {
       type: Schema.Types.ObjectId,
+      ref: 'Location',
     },
     quantity: {
       type: Number,
@@ -36,14 +37,14 @@ const stockSchema = new Schema<IStock>(
   { timestamps: true }
 )
 
-stockSchema.pre('save', function (next) {
-  const product = Product.findById(this.product)
+stockSchema.pre('save', async function (next) {
+  const product = await Product.findById(this.product)
   if (!product) {
     throw new NotFoundError('Product not found')
   }
 
   if (this.variant) {
-    const variant = Variant.findById(this.variant)
+    const variant = await Variant.findById(this.variant)
     if (!variant) {
       throw new NotFoundError('Variant not found')
     }

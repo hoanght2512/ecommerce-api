@@ -13,7 +13,14 @@ import { authAdminMiddleware } from '../middlewares/auth'
 const categoryRoutes = Router()
 
 // list all categories
-categoryRoutes.get('/', getCategories)
+categoryRoutes.get(
+  '/',
+  validate([
+    param('page').optional().isNumeric().toInt(),
+    param('limit').optional().isNumeric().toInt(),
+  ]),
+  getCategories
+)
 
 // get a specific category
 categoryRoutes.get(

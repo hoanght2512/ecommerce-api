@@ -22,6 +22,12 @@ const locationSchema = new Schema<ILocation>(
   { timestamps: true }
 )
 
+locationSchema.methods.toJSON = function () {
+  const location = this.toObject()
+  delete location.__v
+  return location
+}
+
 const Location = model<ILocation>('Location', locationSchema)
 
 export default Location
