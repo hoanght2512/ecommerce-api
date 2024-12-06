@@ -1,14 +1,14 @@
 import { Router } from 'express'
 import { validate } from '../middlewares/validator'
 import { body, param } from 'express-validator'
-import { authMiddleware } from '../middlewares/auth'
 import {
   getCategories,
   getCategoryById,
   createCategory,
   updateCategory,
   deleteCategory,
-} from '../controllers/categoryController'
+} from '../controllers/category.controller'
+import { authAdminMiddleware } from '../middlewares/auth'
 
 const categoryRoutes = Router()
 
@@ -25,7 +25,7 @@ categoryRoutes.get(
 // create a new category
 categoryRoutes.post(
   '/',
-  authMiddleware,
+  authAdminMiddleware,
   validate([
     body('name').isString().withMessage('Name is required'),
     body('description').isString().withMessage('Description is required'),
@@ -38,7 +38,7 @@ categoryRoutes.post(
 // update a category
 categoryRoutes.put(
   '/:id',
-  authMiddleware,
+  authAdminMiddleware,
   validate([
     param('id').isMongoId().withMessage('Invalid category ID'),
     body('name').isString().withMessage('Name is required'),
@@ -52,7 +52,7 @@ categoryRoutes.put(
 // delete a category
 categoryRoutes.delete(
   '/:id',
-  authMiddleware,
+  authAdminMiddleware,
   validate([param('id').isMongoId().withMessage('Invalid category ID')]),
   deleteCategory
 )

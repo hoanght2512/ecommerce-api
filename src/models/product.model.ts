@@ -1,6 +1,6 @@
 import { Schema, Document, model, Types } from 'mongoose'
-import { IVariant } from './variant'
-import { ICategory } from './category'
+import { IVariant } from './variant.model'
+import { ICategory } from './category.model'
 
 export interface IProduct extends Document {
   _id: Types.ObjectId

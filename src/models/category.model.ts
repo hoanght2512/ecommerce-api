@@ -1,5 +1,5 @@
 import { Schema, Document, model, Types } from 'mongoose'
-import { ErrorHandler } from '../utils/utility-class'
+import { ErrorHandler, NotFoundError } from '../utils/utility-class'
 
 export interface ICategory extends Document {
   _id: Types.ObjectId
@@ -25,10 +25,10 @@ categorySchema.pre('save', async function (next) {
   if (this.parent) {
     const parentCategory = await Category.findById(this.parent)
     if (!parentCategory)
-      throw new ErrorHandler('Parent category does not exist', 404)
+      throw new NotFoundError('Parent category does not exist')
   }
   if (this.parent && this.parent.equals(this._id)) {
-    throw new Error('Category cannot be a parent of itself')
+    throw new ErrorHandler('Category cannot be parent of itself', 400)
   }
   next()
 })

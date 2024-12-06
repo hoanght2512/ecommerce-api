@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express'
 import jwt, { JwtPayload } from 'jsonwebtoken'
-import User from '../models/user'
+import User from '../models/user.model'
 import { AuthenticationError } from '../utils/utility-class'
 
 export const authMiddleware: RequestHandler = async (
@@ -28,3 +28,23 @@ export const authMiddleware: RequestHandler = async (
     next(error)
   }
 }
+
+const adminMiddleware: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user?.roles.includes('admin'))
+      throw new AuthenticationError('Unauthorized')
+
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const authAdminMiddleware: RequestHandler[] = [
+  authMiddleware,
+  adminMiddleware,
+]

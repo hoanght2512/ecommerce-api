@@ -1,6 +1,10 @@
 import { Request, Response } from 'express'
-import { AuthenticationError, ErrorHandler } from '../utils/utility-class'
-import User, { IAddress, IUser } from '../models/user'
+import {
+  AuthenticationError,
+  ErrorHandler,
+  NotFoundError,
+} from '../utils/utility-class'
+import User, { IAddress, IUser } from '../models/user.model'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { tryCatch } from '../middlewares/trycatch'
 
@@ -212,8 +216,7 @@ export const setPrimaryAddress = tryCatch(
       (address) => address._id.toString() === id
     )
 
-    if (addressIndex === -1) throw new ErrorHandler('Address not found', 404)
-
+    if (addressIndex === -1) throw new NotFoundError('Address not found')
     user.address.forEach((address) => {
       address.default = false
     })
@@ -305,7 +308,7 @@ export const updateAddress = tryCatch(async (req: Request, res: Response) => {
     (address) => address._id.toString() === id
   )
 
-  if (addressIndex === -1) throw new ErrorHandler('Address not found', 404)
+  if (addressIndex === -1) throw new NotFoundError('Address not found')
 
   user.address[addressIndex] = {
     firstName: first_name,
@@ -343,7 +346,7 @@ export const deleteAddress = tryCatch(async (req: Request, res: Response) => {
     (address) => address._id.toString() === id
   )
 
-  if (addressIndex === -1) throw new ErrorHandler('Address not found', 404)
+  if (addressIndex === -1) throw new NotFoundError('Address not found')
 
   if (user.address[addressIndex].default)
     throw new ErrorHandler('Cannot delete primary address', 400)

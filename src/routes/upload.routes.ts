@@ -4,7 +4,7 @@ import upload from '../config/upload'
 import {
   uploadImage,
   replaceProductImage,
-} from '../controllers/uploadController'
+} from '../controllers/upload.controller'
 
 const uploadRoutes = Router()
 

@@ -139,17 +139,17 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 )
 
-userSchema.methods.encryptPassword = (password: string) => {
-  return bcrypt.hashSync(password, 10)
+userSchema.methods.encryptPassword = async (password: string) => {
+  return bcrypt.hash(password, 10)
 }
 
-userSchema.methods.validatePassword = function (password: string) {
-  return bcrypt.compareSync(password, this.password)
+userSchema.methods.validatePassword = async function (password: string) {
+  return bcrypt.compare(password, this.password)
 }
 
-userSchema.pre<IUser>('save', function (next) {
+userSchema.pre<IUser>('save', async function (next) {
   if (this.isModified('password')) {
-    this.password = this.encryptPassword(this.password)
+    this.password = await this.encryptPassword(this.password)
   }
   next()
 })

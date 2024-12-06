@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import Category from '../models/category'
-import { ErrorHandler } from '../utils/utility-class'
+import Category from '../models/category.model'
+import { NotFoundError } from '../utils/utility-class'
 import { Types } from 'mongoose'
 import { tryCatch } from '../middlewares/trycatch'
 
@@ -71,7 +71,7 @@ export const getCategoryById = tryCatch(async (req: Request, res: Response) => {
       },
     },
   ])
-  if (!category) throw new ErrorHandler('Category not found', 404)
+  if (!category) throw new NotFoundError('Category not found')
 
   res.status(200).json({
     success: true,
@@ -105,7 +105,7 @@ export const updateCategory = tryCatch(async (req: Request, res: Response) => {
 
   if (parent) {
     const checkParent = await Category.findById(parent)
-    if (!checkParent) throw new ErrorHandler('Parent category not found', 404)
+    if (!checkParent) throw new NotFoundError('Parent category not found')
   }
 
   const updatedCategory = await Category.findByIdAndUpdate(
@@ -114,7 +114,7 @@ export const updateCategory = tryCatch(async (req: Request, res: Response) => {
     { new: true, runValidators: true }
   )
 
-  if (!updatedCategory) throw new ErrorHandler('Category not found', 404)
+  if (!updatedCategory) throw new NotFoundError('Category not found')
 
   res.status(200).json({
     success: true,
@@ -133,7 +133,7 @@ export const deleteCategory = tryCatch(async (req: Request, res: Response) => {
   const { id } = req.params
 
   const category = await Category.findByIdAndDelete(id)
-  if (!category) throw new ErrorHandler('Category not found', 404)
+  if (!category) throw new NotFoundError('Category not found')
 
   res.status(200).json({
     success: true,

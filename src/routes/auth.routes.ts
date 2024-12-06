@@ -12,7 +12,7 @@ import {
   updateAddress,
   deleteAddress,
   setPrimaryAddress,
-} from '../controllers/authController'
+} from '../controllers/auth.controller'
 import { validate } from '../middlewares/validator'
 import { body, param } from 'express-validator'
 import { authMiddleware } from '../middlewares/auth'
