@@ -8,6 +8,7 @@ import {
 
 const uploadRoutes = Router()
 
+// Đang làm
 uploadRoutes.post('/image', authMiddleware, upload.single('image'), uploadImage)
 
 uploadRoutes.post(

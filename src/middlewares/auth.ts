@@ -10,8 +10,11 @@ export const authMiddleware: RequestHandler = async (
 ) => {
   try {
     const token = req.headers.authorization?.split(' ')[1]
+    if (!token) throw new AuthenticationError('No token provided')
 
-    if (!token) throw new AuthenticationError('Unauthorized')
+    if (!process.env.JWT_SECRET) {
+      throw new Error('No JWT_SECRET found')
+    }
 
     const payload = jwt.verify(
       token,
@@ -25,7 +28,7 @@ export const authMiddleware: RequestHandler = async (
     req.user = user
     next()
   } catch (error) {
-    next(error)
+    next(new AuthenticationError('Unauthorized'))
   }
 }
 

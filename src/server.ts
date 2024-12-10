@@ -9,9 +9,9 @@ import mongoConnect from './config/database'
 import authRoutes from './routes/auth.routes'
 import productRoutes from './routes/product.routes'
 import uploadRoutes from './routes/upload.routes'
-import locationRoutes from './routes/location.routes'
 import { errorMiddleware } from './middlewares/error'
 import categoryRoutes from './routes/category.routes'
+import tierRoutes from './routes/tier.routes'
 
 dotenv.config()
 const app = express()
@@ -36,7 +36,7 @@ app.use(cors(corsOptions))
 
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/categories', categoryRoutes)
-app.use('/api/v1/locations', locationRoutes)
+app.use('/api/v1/tiers', tierRoutes)
 app.use('/api/v1/products', productRoutes)
 app.use('/api/v1/uploads', uploadRoutes)
 

@@ -12,7 +12,8 @@ import { authAdminMiddleware } from '../middlewares/auth'
 
 const categoryRoutes = Router()
 
-// list all categories
+categoryRoutes.use(authAdminMiddleware)
+
 categoryRoutes.get(
   '/',
   validate([
@@ -22,17 +23,14 @@ categoryRoutes.get(
   getCategories
 )
 
-// get a specific category
 categoryRoutes.get(
   '/:id',
   validate([param('id').isMongoId().withMessage('Invalid category ID')]),
   getCategoryById
 )
 
-// create a new category
 categoryRoutes.post(
   '/',
-  authAdminMiddleware,
   validate([
     body('name').isString().withMessage('Name is required'),
     body('description').isString().withMessage('Description is required'),
@@ -42,10 +40,8 @@ categoryRoutes.post(
   createCategory
 )
 
-// update a category
 categoryRoutes.put(
   '/:id',
-  authAdminMiddleware,
   validate([
     param('id').isMongoId().withMessage('Invalid category ID'),
     body('name').isString().withMessage('Name is required'),
@@ -56,10 +52,8 @@ categoryRoutes.put(
   updateCategory
 )
 
-// delete a category
 categoryRoutes.delete(
   '/:id',
-  authAdminMiddleware,
   validate([param('id').isMongoId().withMessage('Invalid category ID')]),
   deleteCategory
 )

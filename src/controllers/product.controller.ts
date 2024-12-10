@@ -1,95 +1,83 @@
 import { Request, Response } from 'express'
-import { Types } from 'mongoose'
 import { tryCatch } from '../middlewares/trycatch'
-import Product from '../models/product.model'
-import Variant from '../models/variant.model'
-import Stock from '../models/stock.model'
-
-export const getProducts = tryCatch(async (req: Request, res: Response) => {
-  const { page = 1, limit = 10, category } = req.query
-
-  const query = category ? { category: category } : {}
-
-  const options = {
-    page: parseInt(page as string),
-    limit: parseInt(limit as string),
-    populate: 'category variants',
-    sort: { createdAt: -1 },
-  }
-
-  const products = await Product.paginate(query, options)
-
-  res.json({
-    success: true,
-    message: 'Products fetched successfully',
-    data: products,
-  })
-})
+import { Product } from '../models/product.model'
+import { Types } from 'mongoose'
+import { Variant } from '../models/variant.model'
+import { TierOption } from '../models/tieroption.model'
 
 export const createProduct = tryCatch(async (req: Request, res: Response) => {
-  const { title, price, image, description, category, variants } = req.body
-
-  // create session
   const session = await Product.startSession()
+  session.startTransaction()
 
   try {
-    session.startTransaction()
+    const {
+      title,
+      thumbnail,
+      description,
+      images,
+      brand = null,
+      category = null,
+      tier_variations,
+      product_variants,
+      attributes,
+    } = req.body
 
-    // 1. Tạo sản phẩm
+    // Tạo sản phẩm mới
     const newProduct = new Product({
       title,
-      price,
-      image,
+      thumbnail,
       description,
+      images,
+      brand,
       category,
+      tier_variations,
+      attributes,
     })
 
-    await newProduct.save()
+    // Tạo biến thể sản phẩm
+    const VariantIds: Types.ObjectId[] = []
 
-    // 2. Xử lý biến thể và tồn kho
-    const variantIds: Types.ObjectId[] = []
-    for (const variant of variants) {
-      const { name, attributes, price, image, quantity, location } = variant
+    for (const variant of product_variants) {
+      // Tìm tất cả các tùy chọn từ TierVariationOption
+      const options = await TierOption.find({
+        _id: { $in: variant.options },
+      }).select('value')
 
-      // 2.1 Tạo biến thể
+      const combination = options.map((option) => option.value).join(' - ')
+
       const newVariant = new Variant({
-        name,
-        attributes,
-        price,
-        image,
-        product: newProduct._id,
+        productId: newProduct._id,
+        combination, // Gán giá trị kết hợp (combination) cho biến thể
+        options: variant.options,
+        stock: variant.stock,
+        price: variant.price,
+        images: variant.images,
       })
 
-      await newVariant.save()
-      variantIds.push(newVariant._id)
+      // Lưu biến thể sản phẩm
+      await newVariant.save({ session })
 
-      // 2.2 Tạo tồn kho cho biến thể
-      const newStock = new Stock({
-        product: newProduct._id,
-        variant: newVariant._id,
-        quantity: quantity,
-        location: location,
-      })
-
-      await newStock.save()
+      // Thêm ObjectId của biến thể vào VariantIds
+      VariantIds.push(newVariant._id)
     }
 
-    // 3. Cập nhật danh sách variants cho sản phẩm
-    newProduct.variants = variantIds
-    await newProduct.save()
+    // Lưu biến thể sản phẩm vào sản phẩm
+    newProduct.product_variants = VariantIds
 
-    // Kết thúc transaction và trả về kết quả
+    // Lưu sản phẩm vào database
+    await newProduct.save({ session })
+
     await session.commitTransaction()
-    session.endSession()
 
     res.status(201).json({
+      success: true,
       message: 'Product created successfully',
-      product: newProduct,
+      data: newProduct,
     })
   } catch (error) {
-    // Nếu có lỗi xảy ra, rollback transaction và bắt lỗi
     await session.abortTransaction()
+    throw new Error('Transaction product failed')
+  } finally {
     session.endSession()
-    throw new Error('Failed to create product')
   }
 })

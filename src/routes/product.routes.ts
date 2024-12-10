@@ -1,55 +1,90 @@
 import { Router } from 'express'
 import { validate } from '../middlewares/validator'
 import { authAdminMiddleware } from '../middlewares/auth'
-import { body, query } from 'express-validator'
-import { createProduct, getProducts } from '../controllers/product.controller'
+import { body, param, query } from 'express-validator'
+import {
+  createProduct,
+  // deleteProduct,
+  // getProduct,
+  // getProducts,
+  // updateProduct,
+} from '../controllers/product.controller'
 
 const productRouter = Router()
 
-productRouter.get(
-  '/',
-  validate([
-    query('page').optional().isNumeric().withMessage('Page must be a number'),
-    query('limit').optional().isNumeric().withMessage('Limit must be a number'),
-    query('category').optional().isMongoId().withMessage('Category not found'),
-  ]),
-  getProducts
-)
+productRouter.use(authAdminMiddleware)
 
 productRouter.post(
   '/',
-  authAdminMiddleware,
   validate([
-    body('title').isString().withMessage('Title is required'),
-    body('price').isNumeric().withMessage('Price is required'),
-    body('category').isMongoId().withMessage('Category is required'),
-    body('description').isString().withMessage('Description is required'),
-    body('image')
+    body('title').isString().withMessage('Title is required').trim(),
+    body('thumbnail')
       .isString()
-      .withMessage('Image is required')
+      .withMessage('Thumbnail is required')
       .isURL()
-      .withMessage('Image must be a URL'),
-    body('variants').isArray().withMessage('Variants must be an array'),
-    body('variants.*.name').isString().withMessage('Name is required'),
-    body('variants.*.price')
-      .isNumeric()
-      .withMessage('Price is required')
-      .isInt({ min: 0 })
-      .withMessage('Price must be greater than or equal to 0'),
-    body('variants.*.image')
+      .withMessage('Thumbnail must be a valid URL'),
+    body('description')
       .isString()
-      .withMessage('Image is required')
+      .withMessage('Description is required')
+      .trim(),
+    body('images')
+      .isArray()
+      .withMessage('Images must be an array')
+      .optional({ nullable: true }),
+    body('images.*')
+      .isString()
+      .withMessage('Each image must be a valid URL')
       .isURL()
-      .withMessage('Image must be a URL'),
-    body('variants.*.attributes')
-      .isObject()
-      .withMessage('Attributes is required'),
-    body('variants.*.quantity')
-      .isNumeric()
-      .withMessage('Quantity is required')
+      .withMessage('Each image must be a valid URL'),
+    body('brand')
+      .optional({ nullable: true })
+      .isMongoId()
+      .withMessage('Brand must be a valid ObjectId'),
+    body('category')
+      .isMongoId()
+      .withMessage('Category is required and must be a valid ObjectId'),
+    body('tier_variations')
+      .isArray({ min: 1 })
+      .withMessage('Tier variations must be an array with at least one tier'),
+    body('tier_variations.*')
+      .isMongoId()
+      .withMessage('Each tier variation must be a valid ObjectId'),
+    body('product_variants')
+      .isArray({ min: 1 })
+      .withMessage(
+        'Product variants must be an array with at least one variant'
+      ),
+    body('product_variants.*.options')
+      .isArray({ min: 1 })
+      .withMessage('Option IDs must be an array with at least one ID'),
+    body('product_variants.*.options.*')
+      .isMongoId()
+      .withMessage('Each option ID must be a valid ObjectId'),
+    body('product_variants.*.stock')
       .isInt({ min: 0 })
-      .withMessage('Quantity must be greater than or equal to 0'),
-    body('variants.*.location').isMongoId().withMessage('Location is required'),
+      .withMessage('Stock must be an integer greater than or equal to 0'),
+    body('product_variants.*.price')
+      .isNumeric()
+      .withMessage('Price must be a valid number'),
+    body('product_variants.*.images')
+      .isArray()
+      .withMessage('Images must be an array')
+      .optional({ nullable: true }),
+    body('product_variants.*.images.*')
+      .isString()
+      .withMessage('Each image must be a valid URL')
+      .isURL()
+      .withMessage('Each image must be a valid URL'),
+    body('attributes')
+      .isArray()
+      .withMessage('Attributes must be an array')
+      .optional({ nullable: true }),
+    body('attributes.*.name')
+      .isString()
+      .withMessage('Attribute name is required'),
+    body('attributes.*.value')
+      .isString()
+      .withMessage('Attribute value is required'),
   ]),
   createProduct
 )

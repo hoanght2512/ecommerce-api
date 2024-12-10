@@ -1,43 +1,116 @@
-import { Schema, Document, model, Types, PaginateModel } from 'mongoose'
-import paginate from 'mongoose-paginate-v2'
-import { IVariant } from './variant.model'
-import { ICategory } from './category.model'
+import { Schema, Document, model, Types } from 'mongoose'
 
 export interface IProduct extends Document {
   _id: Types.ObjectId
   title: string
-  price: number
-  image: string
+  thumbnail: string
+  brand: Types.ObjectId | null
+  category: Types.ObjectId | null
   description: string
-  category: Types.ObjectId | ICategory
-  variants: Types.ObjectId[] | IVariant[]
+  images: string[]
+  attributes: {
+    name: string
+    value: string
+  }
+  like: number // Số lượt thích sản phẩm
+  stock: number // Tổng số lượng sản phẩm bao gồm cả số lượng của các biến thể
+  sold: number // Số lượng sản phẩm đã bán
+  isAvailable: boolean
+  totalRating: number
+  totalReviews: number
+  reviews: Types.ObjectId[]
+  tier_variations: Types.ObjectId[]
+  product_variants: Types.ObjectId[]
   createdAt: Date
   updatedAt: Date
 }
 
-const productSchema = new Schema<IProduct>(
+export const ProductSchema = new Schema<IProduct>(
   {
-    title: { type: String, required: true },
-    price: { type: Number, required: true, min: 0 },
-    image: { type: String, required: true },
-    description: { type: String, required: true },
-    category: { type: Schema.Types.ObjectId, ref: 'Category' },
-    variants: [{ type: Schema.Types.ObjectId, ref: 'Variant' }],
+    // Thông tin cơ bản về sản phẩm
+    title: {
+      type: String,
+      required: [true, 'Title is required'],
+      trim: true,
+    },
+    thumbnail: {
+      type: String,
+      required: [true, 'Thumbnail is required'],
+      trim: true,
+    },
+    description: {
+      type: String,
+      required: [true, 'Description is required'],
+      trim: true,
+      maxlength: [500, 'Description must not be more than 500 characters'],
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
+    like: {
+      type: Number,
+      default: 0,
+    },
+    stock: {
+      type: Number,
+      required: [true, 'Stock is required'],
+      default: 0,
+    },
+    sold: {
+      type: Number,
+      default: 0,
+    },
+    isAvailable: {
+      type: Boolean,
+      default: true,
+    },
+
+    // Thông tin liên kết
+    brand: {
+      type: Schema.Types.ObjectId,
+      ref: 'Brand',
+      default: null,
+    },
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: 'Category',
+      default: null,
+    },
+    tier_variations: [{ type: Schema.Types.ObjectId, ref: 'Tier' }],
+    product_variants: [{ type: Schema.Types.ObjectId, ref: 'Variant' }],
+
+    // Thông tin về đánh giá
+    totalRating: {
+      type: Number,
+      default: 0,
+    },
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
+    reviews: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Review',
+      },
+    ],
+
+    // Thông tin bổ sung
+    attributes: [
+      {
+        name: {
+          type: String,
+          required: [true, 'Attribute name is required'],
+        },
+        value: {
+          type: String,
+          required: [true, 'Attribute value is required'],
+        },
+      },
+    ],
   },
   { timestamps: true }
 )
 
-productSchema.plugin(paginate)
-
-productSchema.methods.toJSON = function () {
-  const product = this.toObject()
-  delete product.__v
-  return product
-}
-
-const Product = model<IProduct, PaginateModel<IProduct>>(
-  'Product',
-  productSchema
-)
-
-export default Product
+export const Product = model<IProduct>('Product', ProductSchema)

@@ -1,28 +1,27 @@
-import { Schema, Document, model, Types } from 'mongoose'
-import { IProduct } from './product.model'
+import { Schema, model, Document, Types } from 'mongoose'
 
 export interface IVariant extends Document {
   _id: Types.ObjectId
-  name: string
-  attributes: Record<string, string | number>
-  price: number
-  image: string
-  product: Types.ObjectId | IProduct
-  createdAt: Date
-  updatedAt: Date
+  productId: Types.ObjectId // Liên kết đến sản phẩm
+  combination: string // Ví dụ: "Đen - L" (kết hợp màu và kích cỡ)
+  options: Types.ObjectId[] // Liên kết đến các thuộc tính của biến thể này
+  stock: number // Số lượng tồn kho cho biến thể này
+  price: number // Giá cho biến thể này
+  images: string[] // Hình ảnh của biến thể này
+  isAvailable: boolean // Biến thể này có còn hàng không
 }
 
-const variantSchema = new Schema<IVariant>(
-  {
-    name: { type: String, required: true },
-    price: { type: Number, required: true, min: 0 },
-    image: { type: String, required: true },
-    attributes: { type: Schema.Types.Mixed, required: true },
-    product: { type: Schema.Types.ObjectId, ref: 'Product' },
+const VariantSchema = new Schema<IVariant>({
+  productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+  combination: {
+    type: String,
+    required: true, // Ví dụ: "Đen - L"
   },
-  { timestamps: true }
-)
+  options: [{ type: Schema.Types.ObjectId, ref: 'TierOption' }],
+  stock: { type: Number, required: true, min: 0 },
+  price: { type: Number, required: true, min: 0 },
+  images: { type: [String], default: [] },
+  isAvailable: { type: Boolean, default: true },
+})
 
-const Variant = model<IVariant>('Variant', variantSchema)
-
-export default Variant
+export const Variant = model<IVariant>('Variant', VariantSchema)

@@ -3,7 +3,7 @@ import { ErrorHandler, NotFoundError } from '../utils/utility-class'
 import { tryCatch } from '../middlewares/trycatch'
 import { Types } from 'mongoose'
 import Category from '../models/category.model'
-import Product from '../models/product.model'
+import { Product } from '../models/product.model'
 
 // Lấy tất cả danh mục hoặc danh mục cha
 export const getCategories = tryCatch(async (req: Request, res: Response) => {

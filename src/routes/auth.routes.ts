@@ -91,6 +91,7 @@ authRoutes.post(
 
 authRoutes.put(
   '/change-password',
+  authMiddleware,
   validate([
     body('current_password')
       .isString()
@@ -111,7 +112,6 @@ authRoutes.put(
         'Password must contain at least one uppercase letter, one lowercase letter, and one number'
       ),
   ]),
-  authMiddleware,
   changePassword
 )
 
@@ -119,6 +119,7 @@ authRoutes.get('/profile', authMiddleware, getProfile)
 
 authRoutes.put(
   '/profile',
+  authMiddleware,
   validate([
     body('first_name')
       .isString()
@@ -134,7 +135,6 @@ authRoutes.put(
       .isMobilePhone('en-US')
       .withMessage('Invalid phone number'),
   ]),
-  authMiddleware,
   updateProfile
 )
 
@@ -142,13 +142,14 @@ authRoutes.get('/address', authMiddleware, getAddress)
 
 authRoutes.put(
   '/address/set-primary/:id',
-  validate([param('id').isMongoId().withMessage('Invalid address ID')]),
   authMiddleware,
+  validate([param('id').isMongoId().withMessage('Invalid address ID')]),
   setPrimaryAddress
 )
 
 authRoutes.post(
   '/address',
+  authMiddleware,
   validate([
     body('first_name')
       .isString()
@@ -188,12 +189,12 @@ authRoutes.post(
       .notEmpty()
       .withMessage('Ward code is required'),
   ]),
-  authMiddleware,
   addAddress
 )
 
 authRoutes.put(
   '/address/:id',
+  authMiddleware,
   validate([
     param('id').isMongoId().withMessage('Invalid address ID'),
     body('first_name')
@@ -234,14 +235,13 @@ authRoutes.put(
       .notEmpty()
       .withMessage('Ward code is required'),
   ]),
-  authMiddleware,
   updateAddress
 )
 
 authRoutes.delete(
   '/address/:id',
-  validate([param('id').isMongoId().withMessage('Invalid address ID')]),
   authMiddleware,
+  validate([param('id').isMongoId().withMessage('Invalid address ID')]),
   deleteAddress
 )
 

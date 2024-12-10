@@ -7,7 +7,9 @@ export const errorMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  console.log(err)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(err)
+  }
   const code = err.code || 500
   const message = code === 500 ? 'Internal Server Error' : err.message
   res.status(code).json({
